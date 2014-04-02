@@ -19,9 +19,10 @@
 #define SIOF_LOGGER_MSG
 
 #include <ctime>
+#include <memory>
 #include <string>
 
-class SLogMsg
+class SLogMsg : public std::enable_shared_from_this<SLogMsg>
 {
 public:
     SLogMsg(){}

@@ -19,8 +19,11 @@
 #define SIOF_LOGGER
 
 #include <atomic>
+#include <condition_variable>
+#include <ctime>
 #include <fstream>
 #include <list>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -30,11 +33,13 @@ class SLogMsg;
 #define SLOG_SEP_DEFAULT    "##########################################################################\n"\
                             "##########################################################################"
 
+typedef std::list<std::shared_ptr<SLogMsg> > SLogMsgList;
+
 class SLog
 {
 public:
     /// only creates logger
-    SLog() : separator_(SLOG_SEP_DEFAULT) {}
+    SLog() : closing_(false), separator_(SLOG_SEP_DEFAULT), fileOpenTime_(0) {}
     /// dtor
     ~SLog();
 
@@ -63,16 +68,24 @@ private:
     void OpenFileIfNeeded(const std::time_t * time);
     void ReopenFile();
 
+    void WriteToStdOut(const std::string & str);
+    void WriteToStdOut(const char * str, ...);
+
+    void LogWriter();
+
     std::atomic<bool> closing_;
 
+    std::condition_variable canLog_;
+
     ///
-    std::list<SLogMsg> queued_;
+    SLogMsgList queued_;
 
     std::mutex dataMutex_;
+    std::mutex logMutex_;
     std::mutex fileMutex_;
     std::mutex closeMutex_;
 
-    std::thread thread_;
+    std::shared_ptr<std::thread> thread_;
     std::string fileName_;
 
     std::string separator_;
