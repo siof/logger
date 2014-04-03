@@ -11,7 +11,7 @@
 #include <sLog.h>
 #include <sLogMsg.h>
 
-#define THREAD_COUNT        1000
+#define THREAD_COUNT        100
 #define LOG_MSG_PER_THREAD  1000
 #define LOG_WAIT            0
 
@@ -25,7 +25,7 @@ void log(int msgCount, int waitTime)
         if (waitTime > 0)
             std::this_thread::sleep_for(std::chrono::microseconds(waitTime));
 
-        logFile.AddMessage("thread %i iter %i", threadId.hash(), i);
+        logFile.AddMessage(SLOG_LEVEL_DEBUG, "thread %i iter %i", threadId.hash(), i);
     }
 }
 

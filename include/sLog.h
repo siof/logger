@@ -29,7 +29,7 @@
 #include <string>
 #include <thread>
 
-class SLogMsg;
+#include "sLogMsg.h"
 
 #define SLOG_SEP_DEFAULT    "##########################################################################\n"\
                             "##########################################################################"
@@ -47,7 +47,7 @@ class SLog
 {
 public:
     /// only creates logger
-    SLog() : closing_(false), separator_(SLOG_SEP_DEFAULT), fileOpenTime_(0) {}
+    SLog() : closing_(false), minLogLevel_(SLOG_LEVEL_NONE), separator_(SLOG_SEP_DEFAULT), fileOpenTime_(0) {}
     /// dtor
     ~SLog();
 
@@ -67,12 +67,16 @@ public:
 
     void Close();
 
-    void AddMessage(const std::string & msg);
-    void AddMessage(const char * fmt, ...);
+    void AddMessage(SLogLevel logLevel, const std::string & msg);
+    void AddMessage(SLogLevel logLevel, const char * fmt, ...);
 
     void SetOption(SLogOptions option, bool enabled);
 
     bool IsOptionSet(SLogOptions option);
+
+    void SetMinimalLogLevel(SLogLevel logLevel);
+
+    SLogLevel GetMinimalLogLevel();
 
 private:
 
@@ -88,6 +92,8 @@ private:
     std::atomic<bool> closing_;
 
     std::array<std::atomic<bool>, OPTIONS_COUNT> options_;
+
+    std::atomic<SLogLevel> minLogLevel_;
 
     std::condition_variable canLog_;
 

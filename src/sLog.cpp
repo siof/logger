@@ -91,14 +91,17 @@ void SLog::Close()
     closeMutex_.unlock();
 }
 
-void SLog::AddMessage(const std::string & msg)
+void SLog::AddMessage(SLogLevel logLevel, const std::string & msg)
 {
+    if (GetMinimalLogLevel() > logLevel)
+        return;
+
     SLogMsg * tmpMsg = nullptr;
     try
     {
         std::lock_guard<std::mutex> lock(dataMutex_);
 
-        tmpMsg = new SLogMsg(msg);
+        tmpMsg = new SLogMsg(logLevel, msg);
         queued_.push_back(std::shared_ptr<SLogMsg>(tmpMsg));
 
         canLog_.notify_one();
@@ -113,8 +116,11 @@ void SLog::AddMessage(const std::string & msg)
     }
 }
 
-void SLog::AddMessage(const char * fmt, ...)
+void SLog::AddMessage(SLogLevel logLevel, const char * fmt, ...)
 {
+    if (GetMinimalLogLevel() > logLevel)
+        return;
+
     char * buffer = nullptr;
 
     va_list lst;
@@ -127,7 +133,7 @@ void SLog::AddMessage(const char * fmt, ...)
         vsprintf(buffer, fmt, lst);
 
         std::string tmpStr(buffer);
-        AddMessage(tmpStr);
+        AddMessage(logLevel, tmpStr);
     }
     catch (std::exception & e)
     {
@@ -148,6 +154,16 @@ void SLog::SetOption(SLogOptions option, bool enabled)
 bool SLog::IsOptionSet(SLogOptions option)
 {
     return options_[option];
+}
+
+void SLog::SetMinimalLogLevel(SLogLevel logLevel)
+{
+    minLogLevel_ = logLevel;
+}
+
+SLogLevel SLog::GetMinimalLogLevel()
+{
+    return minLogLevel_;
 }
 
 void SLog::OpenFileIfNeeded(const SLogMsg * time)

@@ -20,17 +20,31 @@
 
 #include <chrono>
 #include <ctime>
-#include <memory>
 #include <string>
 
 typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> SLogTimePoint;
 
-class SLogMsg : public std::enable_shared_from_this<SLogMsg>
+enum SLogLevel
+{
+    SLOG_LEVEL_NONE         = 0,
+    SLOG_LEVEL_DEBUG        = 1,
+    SLOG_LEVEL_DEBUG2       = 2,
+    SLOG_LEVEL_WARNING      = 3,
+    SLOG_LEVEL_ERROR        = 4,
+    SLOG_LEVEL_FATAL        = 5,
+    SLOG_LEVEL_EXCEPTION    = 6,
+
+    SLOG_LEVEL_INFO         = 7,
+
+    SLOG_LEVEL_COUNT
+};
+
+class SLogMsg
 {
 public:
     SLogMsg(){}
     SLogMsg(const SLogMsg& p);
-    SLogMsg(const std::string & msg);
+    SLogMsg(SLogLevel logLevel, const std::string & msg);
     ~SLogMsg(){}
 
     const std::string & GetMsg() const;
@@ -40,8 +54,13 @@ public:
     friend std::ostream & operator<< (std::ostream & out, const SLogMsg & msg);
 
     SLogMsg & operator = (const SLogMsg & p);
+
+    static inline std::string GetLogLevelStr(SLogLevel logLevel);
+
 private:
+
     SLogTimePoint time_;
+    SLogLevel logLevel_;
     std::string msg_;
 };
 

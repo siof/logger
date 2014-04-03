@@ -25,9 +25,10 @@ SLogMsg::SLogMsg(const SLogMsg& p)
     msg_ = p.GetMsg();
 }
 
-SLogMsg::SLogMsg(const std::string & msg)
+SLogMsg::SLogMsg(SLogLevel logLevel, const std::string & msg)
 {
     time_ = std::chrono::system_clock::now();
+    logLevel_ = logLevel;
     msg_ = msg;
 }
 
@@ -48,6 +49,32 @@ const SLogTimePoint & SLogMsg::GetTime() const
     return time_;
 }
 
+std::string SLogMsg::GetLogLevelStr(SLogLevel logLevel)
+{
+    switch (logLevel)
+    {
+        case SLOG_LEVEL_DEBUG:
+            return "[DEBUG] ";
+        case SLOG_LEVEL_DEBUG2:
+            return "[DEBUG2] ";
+        case SLOG_LEVEL_WARNING:
+            return "[WARNING] ";
+        case SLOG_LEVEL_ERROR:
+            return "[ERROR] ";
+        case SLOG_LEVEL_FATAL:
+            return "[FATAL] ";
+        case SLOG_LEVEL_EXCEPTION:
+            return "[EXCEPTION] ";
+        case SLOG_LEVEL_INFO:
+            return "[INFO] ";
+        case SLOG_LEVEL_NONE:
+        default:
+            break;
+    }
+
+    return "";
+}
+
 SLogMsg & SLogMsg::operator = (const SLogMsg & p)
 {
     time_ = p.GetTime();
@@ -65,7 +92,7 @@ std::ostream & operator<< (std::ostream & out, const SLogMsg & msg)
 
     out << std::put_time(std::localtime(&tmpTime), "%Y-%m-%d %H:%M:%S.");
     out << std::setw(3) << ms.count();
-    out << std::setw(0) << " - " << msg.msg_ << "\n";//std::endl;
+    out << std::setw(0) << " " << SLogMsg::GetLogLevelStr(msg.logLevel_) << msg.msg_ << "\n";//std::endl;
 
     return out;
 }
