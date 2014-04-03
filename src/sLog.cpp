@@ -184,6 +184,8 @@ void SLog::ReopenFile()
     memset(date, 0, sizeof(date));
     std::strftime(date, sizeof(date), "_%Y_%m_%d", tmpCurrTm);
 
+    delete tmpCurrTm;
+
     std::string destFileName = fileName_;
     destFileName += date;
     destFileName += "." + fileExtension_;
