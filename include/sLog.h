@@ -18,6 +18,7 @@
 #ifndef SIOF_LOGGER
 #define SIOF_LOGGER
 
+#include <array>
 #include <atomic>
 #include <condition_variable>
 #include <ctime>
@@ -35,6 +36,13 @@ class SLogMsg;
 
 typedef std::list<std::shared_ptr<SLogMsg> > SLogMsgList;
 
+enum SLogOptions
+{
+    OPTION_FILE_ROLLING     = 0,
+
+    OPTIONS_COUNT
+};
+
 class SLog
 {
 public:
@@ -45,7 +53,7 @@ public:
 
     /// Here you can set/change filename to save files
     /// function automatically closes old file and reopen new
-    void SetFileName(std::string & fileName);
+    void SetFileName(std::string & fileName, std::string extension = "log");
     ///
     void SetSeparator(std::string & separator);
     /// Returns actual file name
@@ -62,6 +70,10 @@ public:
     void AddMessage(const std::string & msg);
     void AddMessage(const char * fmt, ...);
 
+    void SetOption(SLogOptions option, bool enabled);
+
+    bool IsOptionSet(SLogOptions option);
+
 private:
 
     /// function to open/reopen file if needed
@@ -75,6 +87,8 @@ private:
 
     std::atomic<bool> closing_;
 
+    std::array<std::atomic<bool>, OPTIONS_COUNT> options_;
+
     std::condition_variable canLog_;
 
     ///
@@ -87,6 +101,7 @@ private:
 
     std::shared_ptr<std::thread> thread_;
     std::string fileName_;
+    std::string fileExtension_;
 
     std::string separator_;
 

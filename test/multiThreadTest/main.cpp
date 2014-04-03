@@ -78,7 +78,7 @@ int main(int argc, char * argv[])
     int threadCount = THREAD_COUNT;
     int logMsgPerThread = LOG_MSG_PER_THREAD;
     int logWait = LOG_WAIT;
-    std::string fileName("multiThreadTest.txt");
+    std::string fileName("multiThreadTest");
 
     std::vector<std::thread> threads;
 

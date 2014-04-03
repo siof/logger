@@ -31,11 +31,12 @@ SLog::~SLog()
 }
 
 /// Here you can set/change filename to save files
-void SLog::SetFileName(std::string & fileName)
+void SLog::SetFileName(std::string & fileName, std::string extension)
 {
     std::lock_guard<std::mutex> guard(fileMutex_);
 
     fileName_ = fileName;
+    fileExtension_ = extension;
 
     ReopenFile();
 }
@@ -60,7 +61,7 @@ void SLog::Start()
     {
         // try to close thread if is running
         Close();
-        ReopenFile();
+        OpenFileIfNeeded(nullptr);
 
         // and start it again
         thread_ = std::shared_ptr<std::thread>(new std::thread(&SLog::LogWriter, this));
@@ -139,9 +140,34 @@ void SLog::AddMessage(const char * fmt, ...)
         delete buffer;
 }
 
+void SLog::SetOption(SLogOptions option, bool enabled)
+{
+    options_[option] = enabled;
+}
+
+bool SLog::IsOptionSet(SLogOptions option)
+{
+    return options_[option];
+}
+
 void SLog::OpenFileIfNeeded(const SLogMsg * time)
 {
-    if (!file_.is_open())
+    bool openFile = !file_.is_open();
+
+    if (!openFile && IsOptionSet(OPTION_FILE_ROLLING) && time)
+    {
+        std::time_t tmpTime = time->GetCTime();
+        std::tm * tmpTm = std::localtime(&tmpTime);
+        std::tm * tmpCurrTm = std::localtime(&fileOpenTime_);
+
+        if (tmpTm && tmpCurrTm && tmpTm->tm_mday != tmpCurrTm->tm_mday)
+            openFile = true;
+
+        delete tmpTm;
+        delete tmpCurrTm;
+    }
+
+    if (openFile)
         ReopenFile();
 }
 
@@ -152,7 +178,17 @@ void SLog::ReopenFile()
 
     fileOpenTime_ = std::time(nullptr);
 
-    file_.open(fileName_, std::ios_base::app);
+    std::tm * tmpCurrTm = std::localtime(&fileOpenTime_);
+
+    char date[12];
+    memset(date, 0, sizeof(date));
+    std::strftime(date, sizeof(date), "_%Y_%m_%d", tmpCurrTm);
+
+    std::string destFileName = fileName_;
+    destFileName += date;
+    destFileName += "." + fileExtension_;
+
+    file_.open(destFileName, std::ios_base::app);
 
     file_ << std::setfill('0') << std::endl << separator_ << std::endl << std::endl;
 }
