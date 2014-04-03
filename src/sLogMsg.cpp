@@ -27,7 +27,7 @@ SLogMsg::SLogMsg(const SLogMsg& p)
 
 SLogMsg::SLogMsg(const std::string & msg)
 {
-    time_ = std::time(nullptr);
+    time_ = std::chrono::system_clock::now();
     msg_ = msg;
 }
 
@@ -36,7 +36,14 @@ const std::string & SLogMsg::GetMsg() const
     return msg_;
 }
 
-const std::time_t & SLogMsg::GetTime() const
+std::time_t SLogMsg::GetCTime() const
+{
+    // commented couse could round to up value
+    //return std::chrono::system_clock::to_time_t(time_);
+    return std::chrono::duration_cast<std::chrono::seconds>(time_.time_since_epoch()).count();
+}
+
+const SLogTimePoint & SLogMsg::GetTime() const
 {
     return time_;
 }
@@ -51,7 +58,14 @@ SLogMsg & SLogMsg::operator = (const SLogMsg & p)
 
 std::ostream & operator<< (std::ostream & out, const SLogMsg & msg)
 {
-    out << std::put_time(std::localtime(&msg.time_), "") << " - " << msg.msg_ << std::endl;
+    // seconds
+    std::time_t tmpTime = msg.GetCTime();
+    // miliseconds
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(msg.time_ - std::chrono::system_clock::from_time_t(tmpTime));
+
+    out << std::put_time(std::localtime(&tmpTime), "%Y-%m-%d %H:%M:%S.");
+    out << std::setw(3) << ms.count();
+    out << std::setw(0) << " - " << msg.msg_ << "\n";//std::endl;
 
     return out;
 }

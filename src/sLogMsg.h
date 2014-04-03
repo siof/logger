@@ -18,9 +18,12 @@
 #ifndef SIOF_LOGGER_MSG
 #define SIOF_LOGGER_MSG
 
+#include <chrono>
 #include <ctime>
 #include <memory>
 #include <string>
+
+typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> SLogTimePoint;
 
 class SLogMsg : public std::enable_shared_from_this<SLogMsg>
 {
@@ -31,13 +34,14 @@ public:
     ~SLogMsg(){}
 
     const std::string & GetMsg() const;
-    const std::time_t & GetTime() const;
+    inline std::time_t GetCTime() const;
+    const SLogTimePoint & GetTime() const;
 
     friend std::ostream & operator<< (std::ostream & out, const SLogMsg & msg);
 
     SLogMsg & operator = (const SLogMsg & p);
 private:
-    std::time_t time_;
+    SLogTimePoint time_;
     std::string msg_;
 };
 

@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <cstdarg>
+#include <iomanip>
 #include <iostream>
 
 #include "sLogMsg.h"
@@ -138,10 +139,8 @@ void SLog::AddMessage(const char * fmt, ...)
         delete buffer;
 }
 
-void SLog::OpenFileIfNeeded(const std::time_t * time)
+void SLog::OpenFileIfNeeded(const SLogMsg * time)
 {
-    std::lock_guard<std::mutex> guard(fileMutex_);
-
     if (!file_.is_open())
         ReopenFile();
 }
@@ -155,7 +154,7 @@ void SLog::ReopenFile()
 
     file_.open(fileName_, std::ios_base::app);
 
-    file_ << std::endl << separator_ << std::endl << std::endl;
+    file_ << std::setfill('0') << std::endl << separator_ << std::endl << std::endl;
 }
 
 void SLog::WriteToStdOut(const std::string & str)
@@ -197,25 +196,34 @@ void SLog::LogWriter()
 
     while (true)
     {
+        dataMutex_.lock();
         if (!closing_ && queued_.empty())
         {
+            dataMutex_.unlock();
+
             std::unique_lock<std::mutex> lock(logMutex_);
             canLog_.wait(lock);
+
+            dataMutex_.lock();
         }
 
-        dataMutex_.lock();
+        //dataMutex_.lock();
 
         localList.swap(queued_);
 
         dataMutex_.unlock();
 
+        std::lock_guard<std::mutex> guard(fileMutex_);
+
         std::for_each(localList.begin(), localList.end(), [this] (std::shared_ptr<SLogMsg> &p) -> void
                                                             {
-                                                                OpenFileIfNeeded(&p->GetTime());
+                                                                OpenFileIfNeeded(p.get());
                                                                 file_ << *p;
                                                             });
 
         localList.clear();
+
+        file_.flush();
 
         if (closing_)
         {

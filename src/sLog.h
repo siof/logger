@@ -65,7 +65,7 @@ public:
 private:
 
     /// function to open/reopen file if needed
-    void OpenFileIfNeeded(const std::time_t * time);
+    void OpenFileIfNeeded(const SLogMsg * time);
     void ReopenFile();
 
     void WriteToStdOut(const std::string & str);
