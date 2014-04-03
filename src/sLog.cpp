@@ -221,9 +221,10 @@ void SLog::LogWriter()
                                                                 file_ << *p;
                                                             });
 
-        localList.clear();
-
         file_.flush();
+
+        // slow in large collections
+        localList.clear();
 
         if (closing_)
         {
