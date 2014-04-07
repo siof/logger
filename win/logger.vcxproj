@@ -11,18 +11,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\sLog.h" />
-    <ClInclude Include="..\src\sLogMsg.h" />
+    <ClInclude Include="..\src\logger.h" />
+    <ClInclude Include="..\src\logMsg.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\sLog.cpp" />
-    <ClCompile Include="..\src\sLogMsg.cpp" />
+    <ClCompile Include="..\src\logger.cpp" />
+    <ClCompile Include="..\src\logMsg.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{702F7BD8-A555-41E6-A60B-205C979975A3}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Logger</RootNamespace>
-    <ProjectName>sLogger</ProjectName>
+    <ProjectName>logger</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

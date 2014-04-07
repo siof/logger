@@ -22,46 +22,49 @@
 #include <ctime>
 #include <string>
 
-typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> SLogTimePoint;
-
-enum SLogLevel
+namespace siof
 {
-    SLOG_LEVEL_NONE         = 0,
-    SLOG_LEVEL_DEBUG        = 1,
-    SLOG_LEVEL_DEBUG2       = 2,
-    SLOG_LEVEL_WARNING      = 3,
-    SLOG_LEVEL_ERROR        = 4,
-    SLOG_LEVEL_FATAL        = 5,
-    SLOG_LEVEL_EXCEPTION    = 6,
+    typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration> LogTimePoint;
 
-    SLOG_LEVEL_INFO         = 7,
+    enum LogLevel
+    {
+        SLOG_LEVEL_NONE         = 0,
+        SLOG_LEVEL_DEBUG        = 1,
+        SLOG_LEVEL_DEBUG2       = 2,
+        SLOG_LEVEL_WARNING      = 3,
+        SLOG_LEVEL_ERROR        = 4,
+        SLOG_LEVEL_FATAL        = 5,
+        SLOG_LEVEL_EXCEPTION    = 6,
 
-    SLOG_LEVEL_COUNT
+        SLOG_LEVEL_INFO         = 7,
+
+        SLOG_LEVEL_COUNT
+    };
+
+    class LogMsg
+    {
+    public:
+        LogMsg(){}
+        LogMsg(const LogMsg& p);
+        LogMsg(LogLevel logLevel, const std::string & msg);
+        ~LogMsg(){}
+
+        const std::string & GetMsg() const;
+        inline std::time_t GetCTime() const;
+        const LogTimePoint & GetTime() const;
+
+        friend std::ostream & operator<< (std::ostream & out, const LogMsg & msg);
+
+        LogMsg & operator = (const LogMsg & p);
+
+        static inline std::string GetLogLevelStr(LogLevel logLevel);
+
+    private:
+
+        LogTimePoint time_;
+        LogLevel logLevel_;
+        std::string msg_;
 };
-
-class SLogMsg
-{
-public:
-    SLogMsg(){}
-    SLogMsg(const SLogMsg& p);
-    SLogMsg(SLogLevel logLevel, const std::string & msg);
-    ~SLogMsg(){}
-
-    const std::string & GetMsg() const;
-    inline std::time_t GetCTime() const;
-    const SLogTimePoint & GetTime() const;
-
-    friend std::ostream & operator<< (std::ostream & out, const SLogMsg & msg);
-
-    SLogMsg & operator = (const SLogMsg & p);
-
-    static inline std::string GetLogLevelStr(SLogLevel logLevel);
-
-private:
-
-    SLogTimePoint time_;
-    SLogLevel logLevel_;
-    std::string msg_;
-};
+}
 
 #endif // SIOF_LOGGER_MSG

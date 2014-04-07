@@ -15,84 +15,87 @@
 *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "sLogMsg.h"
+#include "logMsg.h"
 
 #include <iomanip>
 
-SLogMsg::SLogMsg(const SLogMsg& p)
+namespace siof
 {
-    time_ = p.GetTime();
-    msg_ = p.GetMsg();
-}
-
-SLogMsg::SLogMsg(SLogLevel logLevel, const std::string & msg)
-{
-    time_ = std::chrono::system_clock::now();
-    logLevel_ = logLevel;
-    msg_ = msg;
-}
-
-const std::string & SLogMsg::GetMsg() const
-{
-    return msg_;
-}
-
-std::time_t SLogMsg::GetCTime() const
-{
-    // commented couse could round to up value
-    //return std::chrono::system_clock::to_time_t(time_);
-    return std::chrono::duration_cast<std::chrono::seconds>(time_.time_since_epoch()).count();
-}
-
-const SLogTimePoint & SLogMsg::GetTime() const
-{
-    return time_;
-}
-
-std::string SLogMsg::GetLogLevelStr(SLogLevel logLevel)
-{
-    switch (logLevel)
+    LogMsg::LogMsg(const LogMsg& p)
     {
-        case SLOG_LEVEL_DEBUG:
-            return "[DEBUG] ";
-        case SLOG_LEVEL_DEBUG2:
-            return "[DEBUG2] ";
-        case SLOG_LEVEL_WARNING:
-            return "[WARNING] ";
-        case SLOG_LEVEL_ERROR:
-            return "[ERROR] ";
-        case SLOG_LEVEL_FATAL:
-            return "[FATAL] ";
-        case SLOG_LEVEL_EXCEPTION:
-            return "[EXCEPTION] ";
-        case SLOG_LEVEL_INFO:
-            return "[INFO] ";
-        case SLOG_LEVEL_NONE:
-        default:
-            break;
+        time_ = p.GetTime();
+        msg_ = p.GetMsg();
     }
 
-    return "";
+    LogMsg::LogMsg(LogLevel logLevel, const std::string & msg)
+    {
+        time_ = std::chrono::system_clock::now();
+        logLevel_ = logLevel;
+        msg_ = msg;
+    }
+
+    const std::string & LogMsg::GetMsg() const
+    {
+        return msg_;
+    }
+
+    std::time_t LogMsg::GetCTime() const
+    {
+        // commented couse could round to up value
+        //return std::chrono::system_clock::to_time_t(time_);
+        return std::chrono::duration_cast<std::chrono::seconds>(time_.time_since_epoch()).count();
+    }
+
+    const LogTimePoint & LogMsg::GetTime() const
+    {
+        return time_;
+    }
+
+    std::string LogMsg::GetLogLevelStr(LogLevel logLevel)
+    {
+        switch (logLevel)
+        {
+            case SLOG_LEVEL_DEBUG:
+                return "[DEBUG] ";
+            case SLOG_LEVEL_DEBUG2:
+                return "[DEBUG2] ";
+            case SLOG_LEVEL_WARNING:
+                return "[WARNING] ";
+            case SLOG_LEVEL_ERROR:
+                return "[ERROR] ";
+            case SLOG_LEVEL_FATAL:
+                return "[FATAL] ";
+            case SLOG_LEVEL_EXCEPTION:
+                return "[EXCEPTION] ";
+            case SLOG_LEVEL_INFO:
+                return "[INFO] ";
+            case SLOG_LEVEL_NONE:
+            default:
+                break;
+        }
+
+        return "";
+    }
+
+    LogMsg & LogMsg::operator = (const LogMsg & p)
+    {
+        time_ = p.GetTime();
+        msg_ = p.GetMsg();
+
+        return *this;
+    }
+
+    std::ostream & operator<< (std::ostream & out, const LogMsg & msg)
+    {
+        // seconds
+        std::time_t tmpTime = msg.GetCTime();
+        // miliseconds
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(msg.time_ - std::chrono::system_clock::from_time_t(tmpTime));
+
+        out << std::put_time(std::localtime(&tmpTime), "%Y-%m-%d %H:%M:%S.");
+        out << std::setw(3) << ms.count();
+        out << std::setw(0) << " " << LogMsg::GetLogLevelStr(msg.logLevel_) << msg.msg_ << "\n";//std::endl;
+
+        return out;
 }
-
-SLogMsg & SLogMsg::operator = (const SLogMsg & p)
-{
-    time_ = p.GetTime();
-    msg_ = p.GetMsg();
-
-    return *this;
-}
-
-std::ostream & operator<< (std::ostream & out, const SLogMsg & msg)
-{
-    // seconds
-    std::time_t tmpTime = msg.GetCTime();
-    // miliseconds
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(msg.time_ - std::chrono::system_clock::from_time_t(tmpTime));
-
-    out << std::put_time(std::localtime(&tmpTime), "%Y-%m-%d %H:%M:%S.");
-    out << std::setw(3) << ms.count();
-    out << std::setw(0) << " " << SLogMsg::GetLogLevelStr(msg.logLevel_) << msg.msg_ << "\n";//std::endl;
-
-    return out;
 }

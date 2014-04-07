@@ -29,91 +29,94 @@
 #include <string>
 #include <thread>
 
-#include "sLogMsg.h"
+#include "logMsg.h"
 
-#define SLOG_SEP_DEFAULT    "##########################################################################\n"\
-                            "##########################################################################"
-
-typedef std::list<std::shared_ptr<SLogMsg> > SLogMsgList;
-
-enum SLogOptions
+namespace siof
 {
-    OPTION_FILE_ROLLING     = 0,
+    #define SLOG_SEP_DEFAULT    "##########################################################################\n"\
+                                "##########################################################################"
 
-    OPTIONS_COUNT
-};
+    typedef std::list<std::shared_ptr<LogMsg> > LoggerMsgList;
 
-class SLog
-{
-public:
-    /// only creates logger
-    SLog() : closing_(false), minLogLevel_(SLOG_LEVEL_NONE), separator_(SLOG_SEP_DEFAULT), fileOpenTime_(0) {}
-    /// dtor
-    ~SLog();
+    enum LoggerOptions
+    {
+        OPTION_FILE_ROLLING     = 0,
 
-    /// Here you can set/change filename to save files
-    /// function automatically closes old file and reopen new
-    void SetFileName(std::string & fileName, std::string extension = "log");
-    ///
-    void SetSeparator(std::string & separator);
-    /// Returns actual file name
-    const std::string & GetFileName() const;
+        OPTIONS_COUNT
+    };
 
-    /// returns if logging thread is working
-    bool IsWorking() const;
+    class Logger
+    {
+    public:
+        /// only creates logger
+        Logger() : closing_(false), minLogLevel_(SLOG_LEVEL_NONE), separator_(SLOG_SEP_DEFAULT), fileOpenTime_(0) {}
+        /// dtor
+        ~Logger();
 
-    /// starts logging thread (if not started)
-    void Start();
+        /// Here you can set/change filename to save files
+        /// function automatically closes old file and reopen new
+        void SetFileName(std::string & fileName, std::string extension = "log");
+        ///
+        void SetSeparator(std::string & separator);
+        /// Returns actual file name
+        const std::string & GetFileName() const;
 
-    void Close();
+        /// returns if logging thread is working
+        bool IsWorking() const;
 
-    void AddMessage(SLogLevel logLevel, const std::string & msg);
-    void AddMessage(SLogLevel logLevel, const char * fmt, ...);
+        /// starts logging thread (if not started)
+        void Start();
 
-    void SetOption(SLogOptions option, bool enabled);
+        void Close();
 
-    bool IsOptionSet(SLogOptions option);
+        void AddMessage(LogLevel logLevel, const std::string & msg);
+        void AddMessage(LogLevel logLevel, const char * fmt, ...);
 
-    void SetMinimalLogLevel(SLogLevel logLevel);
+        void SetOption(LoggerOptions option, bool enabled);
 
-    SLogLevel GetMinimalLogLevel();
+        bool IsOptionSet(LoggerOptions option);
 
-private:
+        void SetMinimalLogLevel(LogLevel logLevel);
 
-    /// function to open/reopen file if needed
-    void OpenFileIfNeeded(const SLogMsg * time);
-    void ReopenFile();
+        LogLevel GetMinimalLogLevel();
 
-    void WriteToStdOut(const std::string & str);
-    void WriteToStdOut(const char * str, ...);
+    private:
 
-    void LogWriter();
+        /// function to open/reopen file if needed
+        void OpenFileIfNeeded(const LogMsg * time);
+        void ReopenFile();
 
-    std::atomic<bool> closing_;
+        void WriteToStdOut(const std::string & str);
+        void WriteToStdOut(const char * str, ...);
 
-    std::array<std::atomic<bool>, OPTIONS_COUNT> options_;
+        void LogWriter();
 
-    std::atomic<SLogLevel> minLogLevel_;
+        std::atomic<bool> closing_;
 
-    std::condition_variable canLog_;
+        std::array<std::atomic<bool>, OPTIONS_COUNT> options_;
 
-    ///
-    SLogMsgList queued_;
+        std::atomic<LogLevel> minLogLevel_;
 
-    std::mutex dataMutex_;
-    std::mutex logMutex_;
-    std::mutex fileMutex_;
-    std::mutex closeMutex_;
+        std::condition_variable canLog_;
 
-    std::shared_ptr<std::thread> thread_;
-    std::string fileName_;
-    std::string fileExtension_;
+        ///
+        LoggerMsgList queued_;
 
-    std::string separator_;
+        std::mutex dataMutex_;
+        std::mutex logMutex_;
+        std::mutex fileMutex_;
+        std::mutex closeMutex_;
 
-    std::ofstream file_;
+        std::shared_ptr<std::thread> thread_;
+        std::string fileName_;
+        std::string fileExtension_;
 
-    std::time_t fileOpenTime_;
-};
+        std::string separator_;
+
+        std::ofstream file_;
+
+        std::time_t fileOpenTime_;
+    };
+}
 
 #endif // SIOF_LOGGER

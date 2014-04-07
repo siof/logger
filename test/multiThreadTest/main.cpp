@@ -8,14 +8,14 @@
 #include <string>
 #include <vector>
 
-#include <sLog.h>
-#include <sLogMsg.h>
+#include <logger.h>
+#include <logMsg.h>
 
 #define THREAD_COUNT        100
 #define LOG_MSG_PER_THREAD  1000
 #define LOG_WAIT            0
 
-SLog logFile;
+siof::Logger logFile;
 
 void log(int msgCount, int waitTime)
 {
@@ -25,14 +25,14 @@ void log(int msgCount, int waitTime)
         if (waitTime > 0)
             std::this_thread::sleep_for(std::chrono::microseconds(waitTime));
 
-        logFile.AddMessage(SLOG_LEVEL_DEBUG, "thread %i iter %i", threadId.hash(), i);
+        logFile.AddMessage(siof::SLOG_LEVEL_DEBUG, "thread %i iter %i", threadId.hash(), i);
     }
 }
 
 void log2(int msgCount, int waitTime, std::ofstream * file)
 {
     std::thread::id threadId = std::this_thread::get_id();
-    SLogTimePoint time;
+    siof::LogTimePoint time;
     for (int i = 0; i < msgCount; ++i)
     {
         if (waitTime > 0)
@@ -54,7 +54,7 @@ std::mutex fileMutex;
 void log3(int msgCount, int waitTime, std::ofstream * file)
 {
     std::thread::id threadId = std::this_thread::get_id();
-    SLogTimePoint time;
+    siof::LogTimePoint time;
     for (int i = 0; i < msgCount; ++i)
     {
         if (waitTime > 0)
@@ -120,6 +120,8 @@ int main(int argc, char * argv[])
 
     auto end = std::chrono::high_resolution_clock::now();
 
+    threads.clear();
+
     file.flush();
 
     file.close();
@@ -138,6 +140,8 @@ int main(int argc, char * argv[])
     file.flush();
 
     file.close();
+
+    threads.clear();
 
     int64_t tmpt1 = std::chrono::duration_cast<std::chrono::milliseconds>(endThreaded - startThreaded).count();
     int64_t tmpt11 = std::chrono::duration_cast<std::chrono::milliseconds>(safeclosed - endThreaded).count();
